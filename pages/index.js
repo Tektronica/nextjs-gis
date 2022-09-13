@@ -8,7 +8,14 @@ export default function Home() {
 
   return (
     <ShadowBox>
-      <MapContainer />
+
+      <MapContainer
+        view={{
+          center: [-122.576164362, 48.135166126],
+          zoom: 10
+        }}>
+      </MapContainer>
+
     </ShadowBox>
   )
 }

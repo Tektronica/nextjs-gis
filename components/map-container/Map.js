@@ -16,7 +16,7 @@ import { fromLonLat } from 'ol/proj';
 // https://taylor.callsen.me/using-openlayers-with-react-functional-components/
 // https://medium.com/swlh/how-to-incorporate-openlayers-maps-into-react-65b411985744
 
-export default function MapContainer() {
+export default function MapContainer({ view }) {
     // retrieve the map container div
     const mapRef = useRef();
 
@@ -28,8 +28,8 @@ export default function MapContainer() {
         const options = {
             // View responsbile for centering, zoom level, and projection
             view: new View({
-                center: fromLonLat([-122.576164362, 48.135166126]),
-                zoom: 10,
+                center: fromLonLat(view.center),
+                zoom: view.zoom,
                 projection: 'EPSG:3857',
             }),
 
