@@ -1,9 +1,9 @@
 import { useContext, useEffect } from "react";
 
-import TileLayer from 'ol/layer/Tile';
+import { Tile as TileLayer } from 'ol/layer';
 import MapContext from '../MapContext';
 
-const Tile = ({ source, zIndex = 0 }) => {
+const Tile = (props, zIndex = 0) => {
 
     const { map } = useContext(MapContext);
 
@@ -11,7 +11,7 @@ const Tile = ({ source, zIndex = 0 }) => {
 
         if (!map) return;
 
-        const tileObject = new TileLayer({ source, zIndex })
+        const tileObject = new TileLayer({ ...props })
 
         map.addLayer(tileObject)
 
