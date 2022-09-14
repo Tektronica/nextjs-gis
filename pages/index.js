@@ -4,7 +4,11 @@ import MapCanvas from '../components/map-container/Map';
 import Layers from '../components/map-container/layers/Layers';
 import Tile from '../components/map-container/layers/TileLayer';
 import Vector from '../components/map-container/layers/VectorLayer';
+
 import addMarker from '../components/map-container/features/Marker';
+
+import Interactions from '../components/map-container/interactions/Interactions';
+import ClickPixel from '../components/map-container/interactions/ClickPixel';
 
 import ShadowBox from '../components/containers/ShadowBox';
 
@@ -44,10 +48,16 @@ export default function Home() {
       <ShadowBox>
 
         <MapCanvas view={{ center: center, zoom: 10 }}>
+
           <Layers>
             <Tile source={source} zIndex={0} />
             <Vector features={features} zIndex={0} />
           </Layers>
+
+          <Interactions>
+            <ClickPixel />
+          </Interactions>
+
         </MapCanvas>
 
       </ShadowBox>
