@@ -1,6 +1,6 @@
 import Layout from '../components/Layout';
 
-import MapContainer from '../components/map-container/Map';
+import MapCanvas from '../components/map-container/Map';
 import Layers from '../components/map-container/layers/Layers';
 import Tile from '../components/map-container/layers/TileLayer';
 import Vector from '../components/map-container/layers/VectorLayer';
@@ -23,12 +23,12 @@ export default function Home() {
   return (
     <ShadowBox>
 
-      <MapContainer view={{ center: center, zoom: 10 }}>
+      <MapCanvas view={{ center: center, zoom: 10 }}>
         <Layers>
           <Tile source={source} zIndex={0} />
           <Vector features={features} zIndex={0} />
         </Layers>
-      </MapContainer>
+      </MapCanvas>
 
     </ShadowBox>
   )

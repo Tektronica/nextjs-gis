@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-import Map from 'ol/Map';
-import View from 'ol/View';
+import { Map, View } from 'ol';
 import { fromLonLat } from 'ol/proj';
 
 import MapContext from "./MapContext";
@@ -16,7 +15,7 @@ import MapContext from "./MapContext";
 // https://taylor.callsen.me/using-openlayers-with-react-functional-components/
 // https://medium.com/swlh/how-to-incorporate-openlayers-maps-into-react-65b411985744
 
-export default function MapContainer({ children, view }) {
+export default function MapCanvas({ children, view }) {
 
     // retrieve the map container div
     const mapRef = useRef();
