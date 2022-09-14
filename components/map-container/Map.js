@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 
 import { Map, View } from 'ol';
-import { fromLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat } from 'ol/proj';
 
 import MapContext from "./MapContext";
 
@@ -39,6 +39,23 @@ export default function MapCanvas({ children, view }) {
         // renders the map canvas to a <div> with 'ref' attribute as the target
         const mapObject = new Map({ ...options, target: mapRef.current });
         setMap(mapObject);
+
+        mapObject.on('click', (evt) => handleMapClick(evt));
+
+        // map click handler
+        const handleMapClick = (event) => {
+            // https://stackoverflow.com/a/50991384/3382269
+
+            // get clicked coordinate using mapRef to access current React state inside OpenLayers callback
+            //  https://stackoverflow.com/a/60643670
+            const clickedCoord = mapObject.getCoordinateFromPixel(event.pixel);
+
+            // transform coord to EPSG 4326 standard Lat Long
+            const transormedCoord = toLonLat(clickedCoord)
+
+            // set React state
+            console.log(transormedCoord)
+        }
 
         // clean up upon component unmount. This protects from double render!
         // https://gis.stackexchange.com/q/429898
