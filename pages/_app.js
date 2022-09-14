@@ -3,6 +3,7 @@
 // /pages/_app.js
 import '../styles/globals.css'
 import 'tailwindcss/tailwind.css'
+import '../components/map-container/ol.css';
 
 // https://nextjs.org/docs/advanced-features/custom-app
 // https://nextjs.org/docs/basic-features/layouts#per-page-layouts
