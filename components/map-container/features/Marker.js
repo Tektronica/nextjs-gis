@@ -31,7 +31,7 @@ function addMarker(coordinates) {
 
     marker.setStyle(options.geoMarker)
 
-    return { features: [marker] }
+    return marker 
 }
 
 export default addMarker;
