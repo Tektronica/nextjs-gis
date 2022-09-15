@@ -1,29 +1,35 @@
-import { useContext, useEffect } from "react";
+import { useContext, useRef, useState, useEffect } from "react";
 
 import { Vector as VectorLayer } from "ol/layer";
 import VectorSource from 'ol/source/Vector';
 import MapContext from '../MapContext';
 
+
 const Vector = ({ features, zIndex = 1 }) => {
 
     const { map } = useContext(MapContext);
 
-    useEffect(() => {
+    // keep reference since we update features dynamically
+    const vectorSource = useRef(
+        new VectorSource({
+            projection: 'EPSG:4326',
+            features: []
+        })
+    );
 
+    // handles only adding the layer once map is ready
+    useEffect(() => {
+        console.log('1 fired')
         if (!map) return;
 
-        const vectorSource = new VectorSource({
-            projection: 'EPSG:4326',
-            features: features
-        });
-
-        // vector layer
-        var vectorLayer = new VectorLayer({
-            source: vectorSource
-        });
+        // the vector layer holds a reference to the vectorSource
+        // can be updated dynamically outside this useEffect
+        const vectorLayer = new VectorLayer({
+            source: vectorSource.current
+        })
 
         map.addLayer(vectorLayer)
-        vectorLayer.setZIndex(zIndex);
+        vectorLayer.setZIndex(zIndex)
 
         return () => {
             if (map) {
@@ -34,7 +40,16 @@ const Vector = ({ features, zIndex = 1 }) => {
 
     }, [map]);
 
+    // updates the features of the vectorSource via its reference
+    // mutable access to vectorSource
+    useEffect(() => {
+        console.log('2 fired')
+        vectorSource.current.clear(true)
+        vectorSource.current.addFeatures(features)
+    }, [features]);
+
     return null;
 }
+
 
 export default Vector;

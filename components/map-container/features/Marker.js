@@ -9,12 +9,14 @@ import {
     Style,
 } from 'ol/style';
 
+
 function addMarker(coordinates) {
     // https://stackoverflow.com/a/54695446/3382269
     // https://openlayers.org/en/latest/examples/feature-move-animation.html
     // https://openlayers.org/en/latest/examples/webgl-points-layer.html
 
-    const marker = new Feature(new Point(fromLonLat(coordinates)));
+    const point = new Point(fromLonLat(coordinates));
+    const marker = new Feature(point);
 
     const options = {
         'geoMarker': new Style({
@@ -31,7 +33,8 @@ function addMarker(coordinates) {
 
     marker.setStyle(options.geoMarker)
 
-    return marker 
+    return marker
 }
+
 
 export default addMarker;

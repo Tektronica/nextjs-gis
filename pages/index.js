@@ -15,6 +15,7 @@ import ShadowBox from '../components/containers/ShadowBox';
 import OSM from 'ol/source/OSM';
 import { useState } from 'react';
 
+
 export default function Home() {
 
   const source = new OSM();
@@ -29,16 +30,24 @@ export default function Home() {
   const [features, setFeatures] = useState([addMarker(center)]);
 
   function handleClick(id) {
+    // https://stackoverflow.com/a/54677026/3382269
 
     if (id == 'add') {
-      // https://stackoverflow.com/a/54677026/3382269
-      const coords = [-122.5, 48.135166126];
+      // adds a new feature
+      const coords = randomCoord(center);
+      console.log('add was pressed')
       setFeatures(oldArray => [...oldArray, addMarker(coords)]);
 
     } else if (id == 'delete') {
+      // deletes the last feature created
       console.log('delete was pressed')
+      const oldarray = [...features]
+      oldarray.pop()
+      setFeatures(oldarray);
+
 
     } else if (id == 'move') {
+      // updates last feature coordinate position
       console.log('move was pressed')
     }
   }
@@ -82,6 +91,20 @@ export default function Home() {
   )
 }
 
+
+function randomCoord(center = [0, 0]) {
+  // returns a random coord near a provided center
+  const scaling = 0.001;
+  const x = center[0] * (1 + Math.random() * randomSign() * scaling);
+  const y = center[1] * (1 + Math.random() * randomSign() * scaling);
+  return [x, y]
+};
+
+
+function randomSign() {
+  // returns a random sign (polarity)
+  return Math.random() < 0.5 ? -1 : 1
+};
 
 
 Home.getLayout = function getLayout(page) {
