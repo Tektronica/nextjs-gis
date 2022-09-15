@@ -14,6 +14,7 @@ import ShadowBox from '../components/containers/ShadowBox';
 
 import OSM from 'ol/source/OSM';
 import { useState } from 'react';
+import { fromLonLat } from 'ol/proj';
 
 
 export default function Home() {
@@ -22,33 +23,44 @@ export default function Home() {
   const center = [-122.576164362, 48.135166126];  // whidbey island
 
   // add features to vector layer
-
-  // var features = [];
-  // features.push(addMarker(center));
-  // features.push(addMarker([-122.5, 48.135166126]));
-
   const [features, setFeatures] = useState([addMarker(center)]);
 
-  function handleClick(id) {
+  function handleClick(type) {
     // https://stackoverflow.com/a/54677026/3382269
 
-    if (id == 'add') {
-      // adds a new feature
-      const coords = randomCoord(center);
-      console.log('add was pressed')
-      setFeatures(oldArray => [...oldArray, addMarker(coords)]);
+    let oldArray = [];
+    let coords = [];
 
-    } else if (id == 'delete') {
-      // deletes the last feature created
-      console.log('delete was pressed')
-      const oldarray = [...features]
-      oldarray.pop()
-      setFeatures(oldarray);
+    switch (type) {
+      case 'add':
+        // adds a new feature
+        console.log('add was pressed')
+        coords = randomCoord(center);
+        setFeatures(oldArray => [...oldArray, addMarker(coords)]);
+        break;
 
+      case 'delete':
+        // deletes the last feature created
+        console.log('delete was pressed')
+        oldArray = [...features]
+        oldArray.pop()
+        setFeatures(oldArray);
+        break;
 
-    } else if (id == 'move') {
-      // updates last feature coordinate position
-      console.log('move was pressed')
+      case 'move':
+        // updates last feature coordinate position
+        // https://openlayers.org/en/latest/examples/feature-move-animation.html
+        // https://gis.stackexchange.com/a/189638
+
+        console.log('move was pressed')
+        const lastFeature = features[features.length - 1]
+        console.log(lastFeature)
+        coords = fromLonLat(randomCoord(center));
+        lastFeature.getGeometry().setCoordinates(coords);
+        break;
+
+      default:
+        throw new Error();
     }
   }
 
@@ -73,15 +85,24 @@ export default function Home() {
 
       <ShadowBox>
         <div className="grid gap-x-4 grid-cols-3">
-          <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow" onClick={() => handleClick('add')}>
+          <button
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            onClick={() => handleClick('add')}
+          >
             Add Next Marker
           </button>
 
-          <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow" onClick={() => handleClick('delete')}>
+          <button
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            onClick={() => handleClick('delete')}
+          >
             Delete Last Marker
           </button>
 
-          <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow" onClick={() => handleClick('move')}>
+          <button
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            onClick={() => handleClick('move')}
+          >
             Move Last Marker
           </button>
 
