@@ -2,12 +2,12 @@
 
 This project utilizes the [OpenLayers](https://www.npmjs.com/package/ol) package to build a performant open-source GIS web app. The goal is to display the whale migration through the Puget Sound region.
 
+![Imgur](https://i.imgur.com/fvv7iFA.mp4)
+
 ## Features:
 - Display Migration Path
 
 ## TODO:
-- Basic implementation of OpenLayers.
-- Futz around making everything look decent, probably.
 - Make a call to the necessary database api, I wonder if they'll pick up?
 - Attempt to have this hosted on Vercel
 
