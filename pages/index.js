@@ -30,6 +30,7 @@ export default function Home() {
 
     let oldArray = [];
     let coords = [];
+    let lastFeature = null;
 
     switch (type) {
       case 'add':
@@ -53,10 +54,27 @@ export default function Home() {
         // https://gis.stackexchange.com/a/189638
 
         console.log('move was pressed')
-        const lastFeature = features[features.length - 1]
-        console.log(lastFeature)
         coords = fromLonLat(randomCoord(center));
         lastFeature.getGeometry().setCoordinates(coords);
+        break;
+
+      case 'animate':
+        // animate position of feature
+
+        console.log('animate was pressed')
+        lastFeature = features[features.length - 1]
+
+        // interpolate across point A and B
+        const pointA = randomCoord(center);
+        const pointB = randomCoord(center);
+        const duration = 1000;  // animation duration (total ms)
+
+        // create new feature
+        const newFeature = addMarker(pointA)
+        setFeatures(oldArray => [...oldArray, newFeature]);
+
+        // interpolation handled by generator inside async func
+        animateFeature(newFeature, pointA, pointB, duration)
         break;
 
       default:
@@ -84,7 +102,7 @@ export default function Home() {
       </ShadowBox>
 
       <ShadowBox>
-        <div className="grid gap-x-4 grid-cols-3">
+        <div className="grid gap-4 grid-cols-3">
           <button
             className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
             onClick={() => handleClick('add')}
@@ -104,6 +122,13 @@ export default function Home() {
             onClick={() => handleClick('move')}
           >
             Move Last Marker
+          </button>
+
+          <button
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            onClick={() => handleClick('animate')}
+          >
+            Animate Next Marker
           </button>
 
         </div>
@@ -126,6 +151,46 @@ function randomSign() {
   // returns a random sign (polarity)
   return Math.random() < 0.5 ? -1 : 1
 };
+
+// this is an async to handle position of a feature
+async function animateFeature(feature, pointA, pointB, duration) {
+  const steps = 100;
+  const dt = Math.max((duration / steps), 1);  // minimum timestep is 1ms per coordinate step
+
+  for (const pos of interpolate(pointA, pointB, steps)) {
+    feature.getGeometry().setCoordinates(fromLonLat(pos));
+
+    // sleep the loop (await is non-blocking due to async)
+    await sleep(dt)  // ms
+  }
+};
+
+// this is a generator
+function* interpolate(a, b, steps) {
+  // returns the interpolated step between a and b with a stepsize of dx
+
+  const [x0, y0] = [a[0], a[1]]  // a = [x1, y1]
+  const [x1, y1] = [b[0], b[1]]  // b = [x2, y2]
+
+  let idx = 0;
+  const dx = (x1 - x0) / steps
+  let step = 0.0;
+
+  while (idx < (steps + 1)) {
+    // computes next step in linear interpolation
+    step = x0 + (dx * idx)
+    // compute the corresponding y component
+    const y3 = (y0 * (x1 - step) + y1 * (step - x0)) / (x1 - x0)
+    // increment the index count for the loop
+    idx++;
+    // yields interpolated point [x, y]
+    yield [step, y3]
+  }
+};
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 
 Home.getLayout = function getLayout(page) {
