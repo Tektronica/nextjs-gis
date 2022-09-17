@@ -19,7 +19,7 @@ const Vector = ({ features, zIndex = 1 }) => {
 
     // handles only adding the layer once map is ready
     useEffect(() => {
-        console.log('1 fired')
+        console.log('3. effect fired: new Vector Layer')
         if (!map) return;
 
         // the vector layer holds a reference to the vectorSource
@@ -43,7 +43,7 @@ const Vector = ({ features, zIndex = 1 }) => {
     // updates the features of the vectorSource via its reference
     // mutable access to vectorSource
     useEffect(() => {
-        console.log('2 fired')
+        console.log('4. effect fired: update features')
         vectorSource.current.clear(true)
         vectorSource.current.addFeatures(features)
     }, [features]);
