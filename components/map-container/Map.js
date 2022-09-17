@@ -18,36 +18,54 @@ import MapContext from "./MapContext";
 export default function MapCanvas({ children, view }) {
 
     // retrieve the map container div
-    const mapRef = useRef();
+    const mapRef = useRef(null);
+    const mapObject = useRef(null);
     const [map, setMap] = useState(null);
 
     // component did mount (no dependency except on refresh)
     useEffect(() => {
+        console.log('1. effect fired: new Map Object')
+        // const options = {
+        //     // View responsbile for centering, zoom level, and projection
+        //     view: new View({
+        //         center: fromLonLat(view.center),
+        //         zoom: view.zoom,
+        //         projection: 'EPSG:3857',
+        //     }),
 
-        const options = {
-            // View responsbile for centering, zoom level, and projection
-            view: new View({
-                center: fromLonLat(view.center),
-                zoom: view.zoom,
-                projection: 'EPSG:3857',
-            }),
-
-            // visual representation using remote data as source
-            layers: [],
-        }
+        //     // visual representation using remote data as source
+        //     layers: [],
+        // }
 
         // renders the map canvas to a <div> with 'ref' attribute as the target
-        const mapObject = new Map({ ...options, target: mapRef.current });
-        setMap(mapObject);
+        // const mapObject = new Map({ ...options, target: mapRef.current });
+        // setMap(mapObject);
+        mapObject.current = new Map({ target: mapRef.current });
+
+        setMap(mapObject.current);
 
         // clean up upon component unmount. This protects from double render!
         // https://gis.stackexchange.com/q/429898
         return () => {
             console.log("will unmount");
-            mapObject.setTarget(null)
+            mapObject.current.setTarget(null)
         };
 
     }, [])
+
+    // updates the features of the vectorSource via its reference
+    // mutable access to vectorSource
+    useEffect(() => {
+        console.log('2. effect fired: new View')
+
+        // View responsbile for centering, zoom level, and projection
+        mapObject.current.setView(new View({
+            center: fromLonLat(view.center),
+            zoom: view.zoom,
+            projection: 'EPSG:3857',
+        }),);
+
+    }, [view]);
 
     return (
         <MapContext.Provider value={{ map }}>
