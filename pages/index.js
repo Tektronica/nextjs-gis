@@ -6,6 +6,7 @@ import Tile from '../components/map-container/layers/TileLayer';
 import Vector from '../components/map-container/layers/VectorLayer';
 
 import addMarker from '../components/map-container/features/Marker';
+import addLine from '../components/map-container/features/Line';
 
 import Interactions from '../components/map-container/interactions/Interactions';
 import ClickPixel from '../components/map-container/interactions/ClickPixel';
@@ -96,10 +97,11 @@ export default function Home() {
 
         // create new feature
         newFeature = addMarker(SEA)
-        setFeatures(oldArray => [...oldArray, newFeature]);
+        const newLine = addLine([SEA]);
+        setFeatures(oldArray => [...oldArray, newLine, newFeature]);
 
         // interpolation handled by generator inside async func
-        animateFeature(newFeature, SEA, KEF, duration)
+        animateFeature(newFeature, newLine, SEA, KEF, duration)
         break;
 
       default:
@@ -186,12 +188,21 @@ function randomSign() {
 };
 
 // this is an async to handle position of a feature
-async function animateFeature(feature, pointA, pointB, duration) {
+async function animateFeature(feature, line, pointA, pointB, duration) {
   const steps = 100;
   const dt = Math.max((duration / steps), 1);  // minimum timestep is 1ms per coordinate step
 
   for (const pos of interpolateGreatCircle(pointA, pointB, steps)) {
+    // update marker location
     feature.getGeometry().setCoordinates(fromLonLat(pos));
+
+    // add new line segment to the line
+    // https://github.com/openlayers/openlayers/issues/6878#issuecomment-306469030
+    var geometry = line.getGeometry();
+    var coordinates = geometry.getCoordinates();
+    geometry.appendCoordinate(fromLonLat(pos));
+    // coordinates.push(fromLonLat(pos));
+    // geometry.setCoordinates(coordinates);
 
     // sleep the loop (await is non-blocking due to async)
     await sleep(dt)  // ms
