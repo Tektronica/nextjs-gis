@@ -16,6 +16,7 @@ import ShadowBox from '../components/containers/ShadowBox';
 import OSM from 'ol/source/OSM';
 import { useState } from 'react';
 import { fromLonLat } from 'ol/proj';
+import UrlTile from 'ol/source/UrlTile';
 
 // https://openlayers.org/en/latest/examples/flight-animation.html
 
@@ -33,9 +34,21 @@ export default function FlightPath() {
     // add features to vector layer
     const [features, setFeatures] = useState([]);
 
-    async function getAirport(){
+    async function getAirport() {
         // testing api here for now
-    }
+        const url = '/api/airport'
+        const response = await fetch(url, {
+            method: 'GET',
+            crossDomain: true,
+        });
+
+        if (!response.ok) {
+            throw new Error('Network resposne was not OK')
+        };
+
+        const json_data = await response.json()
+        console.log(json_data)
+    };
 
 
     function handleClick(type) {
@@ -118,12 +131,20 @@ export default function FlightPath() {
             </ShadowBox>
 
             <ShadowBox>
-                <button
-                    className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-                    onClick={() => handleClick('flight')}
-                >
-                    SEA to KEF
-                </button>
+                <div className="grid gap-4 grid-cols-3">
+                    <button
+                        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+                        onClick={() => handleClick('flight')}
+                    >
+                        SEA to KEF
+                    </button>
+                    <button
+                        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+                        onClick={() => getAirport()}
+                    >
+                        Test API
+                    </button>
+                </div>
             </ShadowBox>
 
             <ShadowBox>
