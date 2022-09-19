@@ -59,6 +59,7 @@ export default function Home() {
 
         console.log('move was pressed')
         coords = fromLonLat(randomCoord(initialCenter));
+        lastFeature = features[features.length - 1]
         lastFeature.getGeometry().setCoordinates(coords);
         break;
 
