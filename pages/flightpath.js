@@ -33,6 +33,10 @@ export default function FlightPath() {
     // add features to vector layer
     const [features, setFeatures] = useState([]);
 
+    async function getAirport(){
+        // testing api here for now
+    }
+
 
     function handleClick(type) {
         // https://stackoverflow.com/a/54677026/3382269
