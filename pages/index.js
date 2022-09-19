@@ -78,7 +78,7 @@ export default function Home() {
         setFeatures(oldArray => [...oldArray, newFeature]);
 
         // interpolation handled by generator inside async func
-        animateFeature(newFeature, pointA, pointB, duration)
+        animateFeature(newFeature, null, pointA, pointB, duration)
         break;
 
       case 'flight':
@@ -198,12 +198,14 @@ async function animateFeature(feature, line, pointA, pointB, duration) {
 
     // add new line segment to the line
     // https://github.com/openlayers/openlayers/issues/6878#issuecomment-306469030
-    var geometry = line.getGeometry();
-    var coordinates = geometry.getCoordinates();
-    geometry.appendCoordinate(fromLonLat(pos));
-    // coordinates.push(fromLonLat(pos));
-    // geometry.setCoordinates(coordinates);
-
+    if (line) {
+      console.log(line)
+      var geometry = line.getGeometry();
+      var coordinates = geometry.getCoordinates();
+      geometry.appendCoordinate(fromLonLat(pos));
+      // coordinates.push(fromLonLat(pos));
+      // geometry.setCoordinates(coordinates);
+    }
     // sleep the loop (await is non-blocking due to async)
     await sleep(dt)  // ms
   }
