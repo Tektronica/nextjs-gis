@@ -16,9 +16,10 @@ import ShadowBox from '../components/containers/ShadowBox';
 import OSM from 'ol/source/OSM';
 import { useState } from 'react';
 import { fromLonLat } from 'ol/proj';
-import UrlTile from 'ol/source/UrlTile';
 
 // https://openlayers.org/en/latest/examples/flight-animation.html
+// https://stackoverflow.com/a/36683831/3382269
+// https://www.kindacode.com/snippet/next-js-api-routes-how-to-get-parameters-query-string/
 
 export default function FlightPath() {
     const departureDate = getDateObject();  // must be moved to a server-side prop
@@ -28,15 +29,20 @@ export default function FlightPath() {
     const returnString = formatDateString(returnDate);
 
     const source = new OSM();
-    const initialCenter = [-122.576164362, 48.135166126];  // whidbey island
-    const [view, setView] = useState({ center: initialCenter, zoom: 10 });
+    const initialCenter = [-100, 40];  // center
+    const [view, setView] = useState({ center: initialCenter, zoom: 4 });
 
     // add features to vector layer
     const [features, setFeatures] = useState([]);
+    const [queryString, setQueryString] = useState('')
 
     async function getAirport() {
         // testing api here for now
-        const url = '/api/airport'
+        const searchParams = new URLSearchParams({
+            search: queryString,
+        })
+        const url = '/api/airport/?' + searchParams
+
         const response = await fetch(url, {
             method: 'GET',
             crossDomain: true,
@@ -144,6 +150,15 @@ export default function FlightPath() {
                     >
                         Test API
                     </button>
+                    {/* https://stackoverflow.com/a/36683831/3382269 */}
+                    <input
+                        className="shadow appearance-none border-2 border-gray-200 rounded  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-purple-500"
+                        id="query-string"
+                        type="text"
+                        placeholder="Search City..."
+                        value={queryString}
+                        onInput={e => setQueryString(e.target.value)}
+                    />
                 </div>
             </ShadowBox>
 
