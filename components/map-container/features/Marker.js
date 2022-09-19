@@ -34,7 +34,7 @@ function addMarker(coordinates) {
     marker.setStyle(options.geoMarker)
 
     return marker
-}
+};
 
 
 export default addMarker;

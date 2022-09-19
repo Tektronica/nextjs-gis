@@ -1,6 +1,4 @@
 import Feature from 'ol/Feature';
-import { fromLonLat } from 'ol/proj';
-import Polyline from 'ol/format/Polyline';
 import LineString from 'ol/geom/LineString';
 import {
     Stroke,
@@ -34,7 +32,7 @@ function addLine(coordinates) {
     line.setStyle(options.route)
 
     return line
-}
+};
 
 
 export default addLine;

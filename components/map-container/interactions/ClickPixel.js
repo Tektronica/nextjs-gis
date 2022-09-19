@@ -1,5 +1,3 @@
-
-
 import { useContext, useEffect } from "react";
 
 import { toLonLat } from 'ol/proj';
@@ -29,16 +27,9 @@ const ClickPixel = () => {
             console.log(transormedCoord)
         }
 
-        // return () => {
-        //     if (map) {
-        //         console.log('remove layer')
-        //         map.removeLayer(tileObject);
-        //     }
-        // };
-
     }, [map]);
 
     return null;
-}
+};
 
 export default ClickPixel;

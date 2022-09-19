@@ -25,21 +25,8 @@ export default function MapCanvas({ children, view }) {
     // component did mount (no dependency except on refresh)
     useEffect(() => {
         console.log('1. effect fired: new Map Object')
-        // const options = {
-        //     // View responsbile for centering, zoom level, and projection
-        //     view: new View({
-        //         center: fromLonLat(view.center),
-        //         zoom: view.zoom,
-        //         projection: 'EPSG:3857',
-        //     }),
-
-        //     // visual representation using remote data as source
-        //     layers: [],
-        // }
 
         // renders the map canvas to a <div> with 'ref' attribute as the target
-        // const mapObject = new Map({ ...options, target: mapRef.current });
-        // setMap(mapObject);
         mapObject.current = new Map({ target: mapRef.current });
 
         setMap(mapObject.current);
@@ -74,4 +61,4 @@ export default function MapCanvas({ children, view }) {
             </div>
         </MapContext.Provider>
     )
-}
+};

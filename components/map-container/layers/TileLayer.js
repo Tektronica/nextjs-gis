@@ -27,6 +27,6 @@ const Tile = (props, zIndex = 0) => {
     }, [map]);
 
     return null;
-}
+};
 
 export default Tile;
