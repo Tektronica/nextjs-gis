@@ -79,7 +79,7 @@ export default function Home() {
         setFeatures(oldArray => [...oldArray, newFeature]);
 
         // interpolation handled by generator inside async func
-        animateFeature(newFeature, null, pointA, pointB, duration)
+        animateFeature(newFeature, null, pointA, pointB, duration, interpolate)
         break;
 
       case 'flight':
@@ -102,7 +102,7 @@ export default function Home() {
         setFeatures(oldArray => [...oldArray, newLine, newFeature]);
 
         // interpolation handled by generator inside async func
-        animateFeature(newFeature, newLine, SEA, KEF, duration)
+        animateFeature(newFeature, newLine, SEA, KEF, duration, interpolateGreatCircle)
         break;
 
       default:
@@ -182,30 +182,25 @@ function randomCoord(center = [0, 0]) {
   return [x, y]
 };
 
-
 function randomSign() {
   // returns a random sign (polarity)
   return Math.random() < 0.5 ? -1 : 1
 };
 
 // this is an async to handle position of a feature
-async function animateFeature(feature, line, pointA, pointB, duration) {
+async function animateFeature(feature, line, pointA, pointB, duration, dataGenerator = interpolate) {
   const steps = 100;
   const dt = Math.max((duration / steps), 1);  // minimum timestep is 1ms per coordinate step
 
-  for (const pos of interpolateGreatCircle(pointA, pointB, steps)) {
+  for (const pos of dataGenerator(pointA, pointB, steps)) {
     // update marker location
     feature.getGeometry().setCoordinates(fromLonLat(pos));
 
     // add new line segment to the line
     // https://github.com/openlayers/openlayers/issues/6878#issuecomment-306469030
     if (line) {
-      console.log(line)
       var geometry = line.getGeometry();
-      var coordinates = geometry.getCoordinates();
       geometry.appendCoordinate(fromLonLat(pos));
-      // coordinates.push(fromLonLat(pos));
-      // geometry.setCoordinates(coordinates);
     }
     // sleep the loop (await is non-blocking due to async)
     await sleep(dt)  // ms
@@ -276,13 +271,12 @@ function* interpolateGreatCircle(a, b, steps) {
     yield [lon, lat];
 
   }
-
-}
+};
 
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
+};
 
 
 Home.getLayout = function getLayout(page) {
