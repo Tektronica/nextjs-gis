@@ -1,5 +1,8 @@
 import Layout from '../components/Layout';
 
+import ShadowBox from '../components/containers/ShadowBox';
+import TypeAhead from '../components/dropdown/TypeAhead';
+
 import MapCanvas from '../components/map-container/Map';
 import Layers from '../components/map-container/layers/Layers';
 import Tile from '../components/map-container/layers/TileLayer';
@@ -7,16 +10,12 @@ import Vector from '../components/map-container/layers/VectorLayer';
 
 import addMarker from '../components/map-container/features/Marker';
 import addLine from '../components/map-container/features/Line';
-
 import Interactions from '../components/map-container/interactions/Interactions';
 import ClickPixel from '../components/map-container/interactions/ClickPixel';
 
-import ShadowBox from '../components/containers/ShadowBox';
-
 import OSM from 'ol/source/OSM';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { fromLonLat } from 'ol/proj';
-import TypeAhead from '../components/dropdown/TypeAhead';
 
 // https://openlayers.org/en/latest/examples/flight-animation.html
 // https://stackoverflow.com/a/36683831/3382269
@@ -32,19 +31,15 @@ export default function FlightPath() {
     const departureString = formatDateString(departureDate);
     const returnString = formatDateString(returnDate);
 
-    const [whereFrom, setWhereFrom] = useState('')
-    const [whereTo, setWhereTo] = useState('')
-    const [matches, setMatches] = useState([])
+    const [whereFrom, setWhereFrom] = useState({ match: null, label: [], suggestions: [], matches: [] })
+    const [whereTo, setWhereTo] = useState({ match: null, label: [], suggestions: [], matches: [] })
 
-    const [features, setFeatures] = useState([]);
-    const [suggestionsFrom, setSuggestionsFrom] = useState([]);
-    const [suggestionsTo, setSuggestionsTo] = useState([]);
-    const [queryString, setQueryString] = useState('')
 
     // add features to vector layer
+    const [features, setFeatures] = useState([]);
     const source = new OSM();
     const initialCenter = [-100, 40];  // center
-    const [view, setView] = useState({ center: initialCenter, zoom: 4 });
+    const [view, setView] = useState({ center: initialCenter, zoom: 2 });
 
 
     // fetches airport matches based on query
@@ -81,17 +76,24 @@ export default function FlightPath() {
                 'name': `${item.City} (${item.ICAO})`
             }));
 
-            setMatches(json_data);
-            setState(items);
+            // setMatches(json_data);
+            setState(current => ({
+                ...current,
+                suggestions: items,
+                matches: json_data
+            }));
 
         }, WAIT_INTERVAL);
     };
 
     // sets the selection from the typeahead dropdown
-    function setSelection(selection, setValue, setSuggestions) {
-        const match = matches[selection]
-        setValue(`${match.City} (${match.ICAO})`)
-        setSuggestions([]);
+    function setSelection(idx, setValue) {
+        setValue(current => ({
+            match: current.matches[idx],
+            label: `${current.matches[idx].City} (${current.matches[idx].ICAO})`,
+            suggestions: [],
+            matches: []
+        }));
     };
 
 
@@ -108,26 +110,27 @@ export default function FlightPath() {
 
                 // pan to SEA and KEF
                 const newCenter = [-70, 60];  // new center
-                setView({ center: newCenter, zoom: 3 });  // new map view
+                setView({ center: newCenter, zoom: 2 });  // new map view
 
                 // interpolate across point A and B
-                const SEA = [-122.3088, 47.4480];
-                const KEF = [-22.6282, 63.9815];
+                const pointA = [whereFrom.match.Longitude, whereFrom.match.Latitude];
+                const pointB = [whereTo.match.Longitude, whereTo.match.Latitude];
                 duration = 1000;  // animation duration (total ms)
 
                 // create new feature
-                newFeature = addMarker(SEA)
-                const newLine = addLine([SEA]);
+                newFeature = addMarker(pointA)
+
+                const newLine = addLine([pointA]);
                 setFeatures(oldArray => [...oldArray, newLine, newFeature]);
 
                 // interpolation handled by generator inside async func
-                animateFeature(newFeature, newLine, SEA, KEF, duration, interpolateGreatCircle)
+                animateFeature(newFeature, newLine, pointA, pointB, duration, interpolateGreatCircle)
                 break;
 
             default:
                 throw new Error();
         }
-    }
+    };
 
     return (
         <>
@@ -136,21 +139,21 @@ export default function FlightPath() {
                     {/* route */}
                     <div className="grid grid-cols-2">
                         <TypeAhead
-                            value={whereFrom}
-                            suggestions={suggestionsFrom}
+                            value={whereFrom.label}
+                            suggestions={whereFrom.suggestions}
                             placeholder={'Where From?'}
-                            onChange={(arg) => getAirports(arg, setSuggestionsFrom)}
-                            onInput={setWhereFrom}
-                            onClick={(arg) => setSelection(arg, setWhereFrom, setSuggestionsFrom)}
+                            onChange={(arg) => getAirports(arg, setWhereFrom)}
+                            onInput={(arg) => setWhereFrom(current => ({ ...current, label: arg }))}
+                            onClick={(arg) => setSelection(arg, setWhereFrom)}
                         />
 
                         <TypeAhead
-                            value={whereTo}
-                            suggestions={suggestionsTo}
-                            placeholder={'Where To?'}
-                            onChange={(arg) => getAirports(arg, setSuggestionsTo)}
-                            onInput={setWhereTo}
-                            onClick={(arg) => setSelection(arg, setWhereTo, setSuggestionsTo)}
+                            value={whereTo.label}
+                            suggestions={whereTo.suggestions}
+                            placeholder={'Where From?'}
+                            onChange={(arg) => getAirports(arg, setWhereTo)}
+                            onInput={(arg) => setWhereTo(current => ({ ...current, label: arg }))}
+                            onClick={(arg) => setSelection(arg, setWhereTo)}
                         />
                     </div>
 
@@ -171,8 +174,39 @@ export default function FlightPath() {
                             defaultValue={returnString}
                         />
                     </div>
+                </div>
+            </ShadowBox>
 
-
+            <ShadowBox>
+                <div className="grid gap-4 grid-cols-2">
+                    <div>
+                        <div className="text-left">
+                            {!whereFrom.match ? '--' : whereFrom.match.ICAO}
+                        </div>
+                        <div className="">
+                            {!whereFrom.match ? '--' : `${whereFrom.match.City} - ${whereFrom.match.Country}`}
+                        </div>
+                        <div className="">
+                            {!whereFrom.match ? '--' : `${whereFrom.match.Name} - ${whereFrom.match.IATA}`}
+                        </div>
+                        <div className="">
+                            {!whereFrom.match ? '--' : `[${whereFrom.match.Longitude} - ${whereFrom.match.Latitude}]`}
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <div className="">
+                            {!whereTo.match ? '--' : whereTo.match.ICAO}
+                        </div>
+                        <div className="">
+                            {!whereTo.match ? '--' : `${whereTo.match.City} - ${whereTo.match.Country}`}
+                        </div>
+                        <div className="">
+                            {!whereTo.match ? '--' : `${whereTo.match.Name} - ${whereTo.match.IATA}`}
+                        </div>
+                        <div className="">
+                            {!whereTo.match ? '--' : `[${whereTo.match.Longitude} - ${whereTo.match.Latitude}]`}
+                        </div>
+                    </div>
                 </div>
             </ShadowBox>
 
@@ -182,23 +216,8 @@ export default function FlightPath() {
                         className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
                         onClick={() => handleClick('flight')}
                     >
-                        SEA to KEF
+                        Fly!
                     </button>
-                    <button
-                        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-                        onClick={() => getAirport()}
-                    >
-                        Test API
-                    </button>
-                    {/* https://stackoverflow.com/a/36683831/3382269 */}
-                    <input
-                        className="shadow appearance-none border-2 border-gray-200 rounded  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-purple-500"
-                        id="query-string"
-                        type="text"
-                        placeholder="Search City..."
-                        value={queryString}
-                        onInput={e => setQueryString(e.target.value)}
-                    />
                 </div>
             </ShadowBox>
 
@@ -221,7 +240,7 @@ export default function FlightPath() {
 
         </>
     )
-}
+};
 
 // this is an async to handle position of a feature
 async function animateFeature(feature, line, pointA, pointB, duration, dataGenerator = interpolate) {
@@ -240,7 +259,7 @@ async function animateFeature(feature, line, pointA, pointB, duration, dataGener
         }
         // sleep the loop (await is non-blocking due to async)
         await sleep(dt)  // ms
-    }
+    };
 };
 
 // this is a generator
@@ -283,7 +302,7 @@ function* interpolateGreatCircle(a, b, steps) {
 
         // yields interpolated point [x, y]
         yield [lon, lat];
-    }
+    };
 };
 
 
@@ -299,7 +318,7 @@ function getDateObject(dateObject = null, offset = 0) {
         today = new Date(dateObject.getTime());
     } else {
         today = new Date();
-    }
+    };
 
     today.setDate(today.getDate() + offset);
 
@@ -315,9 +334,6 @@ function formatDateString(dateObject) {
     const ddd = dayNames[dateObject.getDay()];
     const mmm = monthNames[dateObject.getMonth()];
     var dd = String(dateObject.getDate()).padStart(2, '0');
-
-    // var mm = String(dateObject.getMonth() + 1).padStart(2, '0'); // January is 0!
-    // var yyyy = dateObject.getFullYear();
 
     const dateString = `${ddd}, ${mmm} ${dd}`;
 

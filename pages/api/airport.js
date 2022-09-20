@@ -14,10 +14,9 @@ export default async function handler(req, res) {
 
     const matches = queryCities(search, items)
     res.status(200).json(matches)
-}
+};
 
 function queryCities(queryString, items) {
-    console.log(queryString)
     var cities = [];
     var matches = [];
     let suggestions = [];
