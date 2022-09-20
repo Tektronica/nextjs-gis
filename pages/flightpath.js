@@ -32,7 +32,7 @@ export default function FlightPath() {
 
     const [whereFrom, setWhereFrom] = useState({ match: null, label: [], suggestions: [], matches: [] })
     const [whereTo, setWhereTo] = useState({ match: null, label: [], suggestions: [], matches: [] })
-
+    const [routes, setRoutes] = useState([])
 
     // add features to vector layer
     const [features, setFeatures] = useState([]);
@@ -93,6 +93,33 @@ export default function FlightPath() {
             suggestions: [],
             matches: []
         }));
+    };
+
+    // fetches routes matching at least source
+    async function getRoutes(departure, arrival) {
+
+        // query params 
+        const searchParams = new URLSearchParams({
+            departure: departure,
+            arrival: arrival,
+            items: 10
+        })
+
+        // append search parameters to the api url
+        const url = '/api/routes/?' + searchParams
+
+        const response = await fetch(url, {
+            method: 'GET',
+            crossDomain: true,
+        });
+
+        if (!response.ok) {
+            throw new Error('Network resposne was not OK')
+        };
+
+        const json_data = await response.json()
+
+        setRoutes(json_data)
     };
 
 
@@ -178,33 +205,11 @@ export default function FlightPath() {
 
             <ShadowBox>
                 <div className="grid gap-4 grid-cols-2">
-                    <div>
-                        <div className="text-left">
-                            {!whereFrom.match ? '--' : whereFrom.match.ICAO}
-                        </div>
-                        <div className="">
-                            {!whereFrom.match ? '--' : `${whereFrom.match.City} - ${whereFrom.match.Country}`}
-                        </div>
-                        <div className="">
-                            {!whereFrom.match ? '--' : `${whereFrom.match.Name} - ${whereFrom.match.IATA}`}
-                        </div>
-                        <div className="">
-                            {!whereFrom.match ? '--' : `[${whereFrom.match.Longitude} - ${whereFrom.match.Latitude}]`}
-                        </div>
+                    <div className="text-left">
+                        <AirportCard location={whereFrom} />
                     </div>
                     <div className="text-right">
-                        <div className="">
-                            {!whereTo.match ? '--' : whereTo.match.ICAO}
-                        </div>
-                        <div className="">
-                            {!whereTo.match ? '--' : `${whereTo.match.City} - ${whereTo.match.Country}`}
-                        </div>
-                        <div className="">
-                            {!whereTo.match ? '--' : `${whereTo.match.Name} - ${whereTo.match.IATA}`}
-                        </div>
-                        <div className="">
-                            {!whereTo.match ? '--' : `[${whereTo.match.Longitude} - ${whereTo.match.Latitude}]`}
-                        </div>
+                        <AirportCard location={whereTo} />
                     </div>
                 </div>
             </ShadowBox>
@@ -216,6 +221,12 @@ export default function FlightPath() {
                         onClick={() => handleClick('flight')}
                     >
                         Fly!
+                    </button>
+                    <button
+                        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+                        onClick={() => getRoutes(whereFrom.match.IATA, whereTo.match.IATA)}
+                    >
+                        Get Routes
                     </button>
                 </div>
             </ShadowBox>
@@ -237,8 +248,145 @@ export default function FlightPath() {
 
             </ShadowBox>
 
+            <ShadowBox>
+                <RoutesTable routes={routes} />
+            </ShadowBox>
+
         </>
     )
+};
+
+function RoutesTable({ routes }) {
+    // routes arg is a list of routes matching the source/destination fields
+    // https://openflights.org/data.html#route
+
+    return (
+
+        <div className="max-h-[400px] overflow-y-auto">
+            <table
+                id='routes-table'
+                className="w-full text-sm text-left text-gray-800"
+            >
+                <thead>
+                    <tr>
+                        <th className='px-6 py-3'>Airline</th>
+                        <th className='px-6 py-3'>Ident</th>
+                        <th className='px-6 py-3'>Aircraft</th>
+                        <th className='px-6 py-3'>Departure</th>
+                        <th className='px-6 py-3'>Arrival</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        (!routes) ? null : (
+
+                            routes.map((route, idx) => {
+
+                                return (
+                                    <tr key={idx} className='bg-white border-b hover:bg-gray-200' >
+                                        <td className='px-6 py-4 text-gray-500'>
+                                            {route['Airline']}
+                                        </td>
+                                        <td className='px-6 py-4 text-gray-500'>
+                                            {route['Airline ID']}
+                                        </td>
+                                        <td className='px-6 py-4 text-gray-500'>
+                                            {route['Source airport']}
+                                        </td>
+                                        <td className='px-6 py-4 text-gray-500'>
+                                            {route['Source airport']}
+                                        </td>
+                                        <td className='px-6 py-4 text-gray-500'>
+                                            {route['Destination airport']}
+                                        </td>
+                                    </tr>
+                                )
+                            })
+                        )
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    )
+};
+
+function AirportCard({ location }) {
+    if (location.match) {
+        const airport = location.match
+        const label = `${airport.Name} - ${airport.IATA}`.replace('International', "Int'l")
+        const baseUrl = 'https://flightaware.com/live/airport/'
+        const LonLatString = formatLonLat([airport.Longitude, airport.Latitude])
+
+        return (
+
+            <>
+                <div className="">
+                    {airport.ICAO}
+                </div>
+                <div className="uppercase font-bold">
+                    {`${airport.City} - ${airport.Country}`}
+                </div>
+                <div className="">
+                    <a
+                        className="text-cyan-600 hover:text-lime-600"
+                        href={baseUrl + airport.ICAO}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <span>
+                            {
+                                (label.split('/')).map((text, idx) => (
+                                    <p key={idx}>
+                                        {((idx == 0) ? '' : '/') + text}
+                                    </p>
+                                ))
+                            }
+                        </span>
+                    </a>
+                </div>
+                <div className="">
+                    {LonLatString}
+                </div>
+            </>
+        )
+    } else {
+
+        return (
+            <>
+                <div className="">
+                    --
+                </div>
+                <div className="uppercase font-bold">
+                    --
+                </div>
+                <div className="">
+                    --
+                </div>
+                <div className="">
+                    --
+                </div>
+            </>
+        )
+    };
+};
+
+function formatLonLat(lonlat) {
+    const [lon, lat] = lonlat
+
+    const NS = `${Math.abs(round(lat, 4))}` + ((lat < 0) ? '° S' : '° N');
+    const WE = `${Math.abs(round(lon, 4))}` + ((lon < 0) ? '° W' : '° E');
+
+    return `( ${NS}, ${WE} )`;
+};
+
+function round(arr, decimals = 1) {
+    // returns rounded value for each list item 
+    if (typeof arr === 'object') {
+        return arr.map(a => round(a, decimals));
+    } else {
+        return Math.round(arr * (10 ** decimals)) / (10 ** decimals)
+    }
 };
 
 // this is an async to handle position of a feature
@@ -257,7 +405,7 @@ async function animateFeature(feature, line, pointA, pointB, duration, dataGener
             geometry.appendCoordinate(fromLonLat(pos));
         }
         // sleep the loop (await is non-blocking due to async)
-        await sleep(dt)  // ms
+        await sleep(dt);  // ms
     };
 };
 
