@@ -3,13 +3,12 @@ import Layout from '../components/Layout';
 import ShadowBox from '../components/containers/ShadowBox';
 import TypeAhead from '../components/dropdown/TypeAhead';
 
+// custom openLayers components
 import MapCanvas from '../components/map-container/Map';
-import Layers from '../components/map-container/layers/Layers';
-import Tile from '../components/map-container/layers/TileLayer';
-import Vector from '../components/map-container/layers/VectorLayer';
+import { Layers, Tile, Vector } from '../components/map-container/layers'
+import { addMarker, addLine } from '../components/map-container/features'
 
-import addMarker from '../components/map-container/features/Marker';
-import addLine from '../components/map-container/features/Line';
+// openLayers components
 import Interactions from '../components/map-container/interactions/Interactions';
 import ClickPixel from '../components/map-container/interactions/ClickPixel';
 
