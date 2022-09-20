@@ -21,12 +21,18 @@ import { fromLonLat } from 'ol/proj';
 // https://stackoverflow.com/a/36683831/3382269
 // https://www.kindacode.com/snippet/next-js-api-routes-how-to-get-parameters-query-string/
 
+const WAIT_INTERVAL = 500;
+let timerID;
+
 export default function FlightPath() {
     const departureDate = getDateObject();  // must be moved to a server-side prop
     const returnDate = getDateObject(departureDate, 10);  // can be handled client-side
 
     const departureString = formatDateString(departureDate);
     const returnString = formatDateString(returnDate);
+
+    const [suggestions, setSuggestions] = useState([])
+    const [whereFrom, setWhereFrom] = useState('')
 
     const source = new OSM();
     const initialCenter = [-100, 40];  // center
@@ -36,24 +42,38 @@ export default function FlightPath() {
     const [features, setFeatures] = useState([]);
     const [queryString, setQueryString] = useState('')
 
-    async function getAirport() {
-        // testing api here for now
-        const searchParams = new URLSearchParams({
-            search: queryString,
-        })
-        const url = '/api/airport/?' + searchParams
+    async function getAirport(query) {
 
-        const response = await fetch(url, {
-            method: 'GET',
-            crossDomain: true,
-        });
+        clearTimeout(timerID)
 
-        if (!response.ok) {
-            throw new Error('Network resposne was not OK')
-        };
+        timerID = setTimeout(async () => {
+            // testing api here for now
+            const searchParams = new URLSearchParams({
+                search: query,
+            })
 
-        const json_data = await response.json()
-        console.log(json_data)
+            const url = '/api/airport/?' + searchParams
+
+            const response = await fetch(url, {
+                method: 'GET',
+                crossDomain: true,
+            });
+
+            if (!response.ok) {
+                throw new Error('Network resposne was not OK')
+            };
+
+            const json_data = await response.json()
+            console.log(json_data)
+            setSuggestions(json_data)
+        }, WAIT_INTERVAL);
+    }
+
+
+    function suggestionSelected(selection) {
+        console.log(selection)
+        setSuggestions([]);
+        setWhereFrom(`${selection.City} (${selection.ICAO})`)
     };
 
 
@@ -98,13 +118,31 @@ export default function FlightPath() {
                 <div className="grid gap-4 grid-cols-2">
                     {/* route */}
                     <div className="grid grid-cols-2">
-                        <input
-                            className="shadow appearance-none border-2 border-gray-200 rounded  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-purple-500"
-                            id="wherefrom"
-                            type="text"
-                            placeholder="Where from?"
-                            defaultValue={'SEA'}
-                        />
+                        <div>
+                            <input
+                                className="shadow appearance-none border-2 border-gray-200 rounded  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-purple-500"
+                                id="wherefrom"
+                                type="text"
+                                placeholder="Where from?"
+                                value={whereFrom}
+                                onChange={(e) => getAirport(e.target.value)}
+                                onInput={(e) => setWhereFrom(e.target.value)}
+                            />
+                            {
+                                (suggestions.length === 0) ? null :
+                                    <ul id="dropdown" className="absolute z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700">
+                                        {
+                                            suggestions.map(item =>
+                                                <li
+                                                    className="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                                                    key={item['Airport ID']} onClick={(e) => suggestionSelected(item)}>
+                                                    {item.City}
+                                                </li>
+                                            )
+                                        }
+                                    </ul>
+                            }
+                        </div>
                         <input
                             className="shadow appearance-none border-2 border-gray-200 rounded  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-purple-500"
                             id="whereto"
