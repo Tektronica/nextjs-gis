@@ -10,14 +10,13 @@ export default async function handler(req, res) {
     // const reqQuery = req.query;
 
     const query = req.query;
-    const { search } = query;
-    console.log(search)
+    const { search, items } = query;
 
-    const matches = queryCities(search)
+    const matches = queryCities(search, items)
     res.status(200).json(matches)
 }
 
-function queryCities(queryString) {
+function queryCities(queryString, items) {
     console.log(queryString)
     var cities = [];
     var matches = [];
@@ -31,5 +30,5 @@ function queryCities(queryString) {
     }
     suggestions = matches.map((match) => jsonData[match[0]])
 
-    return suggestions
+    return suggestions.slice(0, items)
 };

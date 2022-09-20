@@ -14,8 +14,9 @@ import ClickPixel from '../components/map-container/interactions/ClickPixel';
 import ShadowBox from '../components/containers/ShadowBox';
 
 import OSM from 'ol/source/OSM';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { fromLonLat } from 'ol/proj';
+import TypeAhead from '../components/dropdown/TypeAhead';
 
 // https://openlayers.org/en/latest/examples/flight-animation.html
 // https://stackoverflow.com/a/36683831/3382269
@@ -31,27 +32,37 @@ export default function FlightPath() {
     const departureString = formatDateString(departureDate);
     const returnString = formatDateString(returnDate);
 
-    const [suggestions, setSuggestions] = useState([])
     const [whereFrom, setWhereFrom] = useState('')
+    const [whereTo, setWhereTo] = useState('')
+    const [matches, setMatches] = useState([])
 
+    const [features, setFeatures] = useState([]);
+    const [suggestionsFrom, setSuggestionsFrom] = useState([]);
+    const [suggestionsTo, setSuggestionsTo] = useState([]);
+    const [queryString, setQueryString] = useState('')
+
+    // add features to vector layer
     const source = new OSM();
     const initialCenter = [-100, 40];  // center
     const [view, setView] = useState({ center: initialCenter, zoom: 4 });
 
-    // add features to vector layer
-    const [features, setFeatures] = useState([]);
-    const [queryString, setQueryString] = useState('')
 
-    async function getAirport(query) {
+    // fetches airport matches based on query
+    async function getAirports(query, setState) {
 
+        // clear the timeout after every new firing
         clearTimeout(timerID)
 
+        // delay fetch unless user has stopped typing for at least the timeout duration
         timerID = setTimeout(async () => {
-            // testing api here for now
+
+            // query params 
             const searchParams = new URLSearchParams({
                 search: query,
+                items: 10
             })
 
+            // append search parameters to the api url
             const url = '/api/airport/?' + searchParams
 
             const response = await fetch(url, {
@@ -64,16 +75,23 @@ export default function FlightPath() {
             };
 
             const json_data = await response.json()
-            console.log(json_data)
-            setSuggestions(json_data)
+
+            const items = json_data.map(item => ({
+                'key': item['Airport ID'],
+                'name': `${item.City} (${item.ICAO})`
+            }));
+
+            setMatches(json_data);
+            setState(items);
+
         }, WAIT_INTERVAL);
-    }
+    };
 
-
-    function suggestionSelected(selection) {
-        console.log(selection)
+    // sets the selection from the typeahead dropdown
+    function setSelection(selection, setValue, setSuggestions) {
+        const match = matches[selection]
+        setValue(`${match.City} (${match.ICAO})`)
         setSuggestions([]);
-        setWhereFrom(`${selection.City} (${selection.ICAO})`)
     };
 
 
@@ -86,7 +104,6 @@ export default function FlightPath() {
         switch (type) {
             case 'flight':
                 // simulate flight path
-
                 console.log('flight was pressed')
 
                 // pan to SEA and KEF
@@ -118,37 +135,22 @@ export default function FlightPath() {
                 <div className="grid gap-4 grid-cols-2">
                     {/* route */}
                     <div className="grid grid-cols-2">
-                        <div>
-                            <input
-                                className="shadow appearance-none border-2 border-gray-200 rounded  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-purple-500"
-                                id="wherefrom"
-                                type="text"
-                                placeholder="Where from?"
-                                value={whereFrom}
-                                onChange={(e) => getAirport(e.target.value)}
-                                onInput={(e) => setWhereFrom(e.target.value)}
-                            />
-                            {
-                                (suggestions.length === 0) ? null :
-                                    <ul id="dropdown" className="absolute z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700">
-                                        {
-                                            suggestions.map(item =>
-                                                <li
-                                                    className="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                                    key={item['Airport ID']} onClick={(e) => suggestionSelected(item)}>
-                                                    {item.City}
-                                                </li>
-                                            )
-                                        }
-                                    </ul>
-                            }
-                        </div>
-                        <input
-                            className="shadow appearance-none border-2 border-gray-200 rounded  w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-purple-500"
-                            id="whereto"
-                            type="text"
-                            placeholder="Where to?"
-                            defaultValue={'KEF'}
+                        <TypeAhead
+                            value={whereFrom}
+                            suggestions={suggestionsFrom}
+                            placeholder={'Where From?'}
+                            onChange={(arg) => getAirports(arg, setSuggestionsFrom)}
+                            onInput={setWhereFrom}
+                            onClick={(arg) => setSelection(arg, setWhereFrom, setSuggestionsFrom)}
+                        />
+
+                        <TypeAhead
+                            value={whereTo}
+                            suggestions={suggestionsTo}
+                            placeholder={'Where To?'}
+                            onChange={(arg) => getAirports(arg, setSuggestionsTo)}
+                            onInput={setWhereTo}
+                            onClick={(arg) => setSelection(arg, setWhereTo, setSuggestionsTo)}
                         />
                     </div>
 
