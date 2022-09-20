@@ -118,10 +118,46 @@ export default function FlightPath() {
         };
 
         const json_data = await response.json()
+        const airlines = await getAirlines(json_data)
 
-        setRoutes(json_data)
+        const tableData = json_data.map((route, idx) =>(
+            {
+                airline:airlines[idx],
+                aircraft:route['Destination airport'],
+                departure:route['Source airport'],
+                arrival:route['Destination airport']
+            }
+        ));
+
+        setRoutes(tableData)
     };
 
+    // fetches routes matching at least source
+    async function getAirlines(allEntries) {
+
+        const entries = allEntries.map((row) => (row['Airline ID']))
+
+        // query params 
+        const searchParams = new URLSearchParams({
+            id: entries,
+            items: 10
+        })
+
+        // append search parameters to the api url
+        const url = '/api/airlines/?' + searchParams
+
+        const response = await fetch(url, {
+            method: 'GET',
+            crossDomain: true,
+        });
+
+        if (!response.ok) {
+            throw new Error('Network resposne was not OK')
+        };
+
+        const json_data = await response.json()
+        return json_data;
+    };
 
     function handleClick(type) {
         // https://stackoverflow.com/a/54677026/3382269
@@ -270,7 +306,6 @@ function RoutesTable({ routes }) {
                 <thead>
                     <tr>
                         <th className='px-6 py-3'>Airline</th>
-                        <th className='px-6 py-3'>Ident</th>
                         <th className='px-6 py-3'>Aircraft</th>
                         <th className='px-6 py-3'>Departure</th>
                         <th className='px-6 py-3'>Arrival</th>
@@ -285,19 +320,16 @@ function RoutesTable({ routes }) {
                                 return (
                                     <tr key={idx} className='bg-white border-b hover:bg-gray-200' >
                                         <td className='px-6 py-4 text-gray-500'>
-                                            {route['Airline']}
+                                            {route.airline}
                                         </td>
                                         <td className='px-6 py-4 text-gray-500'>
-                                            {route['Airline ID']}
+                                            {route.aircraft}
                                         </td>
                                         <td className='px-6 py-4 text-gray-500'>
-                                            {route['Source airport']}
+                                            {route.departure}
                                         </td>
                                         <td className='px-6 py-4 text-gray-500'>
-                                            {route['Source airport']}
-                                        </td>
-                                        <td className='px-6 py-4 text-gray-500'>
-                                            {route['Destination airport']}
+                                            {route.arrival}
                                         </td>
                                     </tr>
                                 )
