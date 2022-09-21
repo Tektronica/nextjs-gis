@@ -198,7 +198,7 @@ export default function FlightPath() {
 
     // update table after both airports are selected
     useEffect(() => {
-        if ((whereTo.match) && (whereTo.match)) {
+        if ((whereFrom.match) && (whereTo.match)) {
             console.log('data')
             getRoutes(whereFrom.match.IATA, whereTo.match.IATA);
         } else {
