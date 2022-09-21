@@ -4,4 +4,4 @@ import Layers from "./Layers";
 import Tile from "./TileLayer";
 import Vector from "./VectorLayer";
 
-export { Layers, Tile, Vector }
+export { Layers, Tile, Vector };

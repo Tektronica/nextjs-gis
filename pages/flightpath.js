@@ -1,29 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+// custom components and exported functions
 import Layout from '../components/Layout';
-
 import ShadowBox from '../components/containers/ShadowBox';
 import TypeAhead from '../components/dropdown/TypeAhead';
+import { getAirports, getRoutes } from './api';
 
 // custom openLayers components
 import MapCanvas from '../components/map-container/Map';
 import { Layers, Tile, Vector } from '../components/map-container/layers'
 import { addMarker, addLine } from '../components/map-container/features'
+import { Interactions, ClickPixel } from '../components/map-container/interactions';
 
 // openLayers components
-import Interactions from '../components/map-container/interactions/Interactions';
-import ClickPixel from '../components/map-container/interactions/ClickPixel';
-
 import OSM from 'ol/source/OSM';
-import { useState } from 'react';
 import { fromLonLat } from 'ol/proj';
 
 // https://openlayers.org/en/latest/examples/flight-animation.html
 // https://stackoverflow.com/a/36683831/3382269
-// https://www.kindacode.com/snippet/next-js-api-routes-how-to-get-parameters-query-string/
-
-const WAIT_INTERVAL = 500;
-let timerID;
 
 export default function FlightPath() {
     const departureDate = getDateObject();  // must be moved to a server-side prop
@@ -42,51 +36,6 @@ export default function FlightPath() {
     const initialCenter = [-100, 40];  // center
     const [view, setView] = useState({ center: initialCenter, zoom: 2 });
 
-
-    // fetches airport matches based on query
-    async function getAirports(query, setState) {
-
-        // clear the timeout after every new firing
-        clearTimeout(timerID)
-
-        // delay fetch unless user has stopped typing for at least the timeout duration
-        timerID = setTimeout(async () => {
-
-            // query params 
-            const searchParams = new URLSearchParams({
-                search: query,
-                items: 10
-            })
-
-            // append search parameters to the api url
-            const url = '/api/airport/?' + searchParams
-
-            const response = await fetch(url, {
-                method: 'GET',
-                crossDomain: true,
-            });
-
-            if (!response.ok) {
-                throw new Error('Network resposne was not OK')
-            };
-
-            const json_data = await response.json()
-
-            const items = json_data.map(item => ({
-                'key': item['Airport ID'],
-                'name': `${item.City} (${item.ICAO})`
-            }));
-
-            // setMatches(json_data);
-            setState(current => ({
-                ...current,
-                suggestions: items,
-                matches: json_data
-            }));
-
-        }, WAIT_INTERVAL);
-    };
-
     // sets the selection from the typeahead dropdown
     function setSelection(idx, setValue) {
         setValue(current => ({
@@ -95,70 +44,6 @@ export default function FlightPath() {
             suggestions: [],
             matches: []
         }));
-    };
-
-    // fetches routes matching at least source
-    async function getRoutes(departure, arrival) {
-
-        // query params 
-        const searchParams = new URLSearchParams({
-            departure: departure,
-            arrival: arrival,
-            items: 10
-        })
-
-        // append search parameters to the api url
-        const url = '/api/routes/?' + searchParams
-
-        const response = await fetch(url, {
-            method: 'GET',
-            crossDomain: true,
-        });
-
-        if (!response.ok) {
-            throw new Error('Network resposne was not OK')
-        };
-
-        const json_data = await response.json()
-        const airlines = await getAirlines(json_data)
-
-        const tableData = json_data.map((route, idx) => (
-            {
-                airline: airlines[idx],
-                aircraft: '787',
-                departure: route['Source airport'],
-                arrival: route['Destination airport']
-            }
-        ));
-
-        setRoutes(tableData)
-    };
-
-    // fetches routes matching at least source
-    async function getAirlines(allEntries) {
-
-        const entries = allEntries.map((row) => (row['Airline ID']))
-
-        // query params 
-        const searchParams = new URLSearchParams({
-            id: entries,
-            items: 10
-        })
-
-        // append search parameters to the api url
-        const url = '/api/airlines/?' + searchParams
-
-        const response = await fetch(url, {
-            method: 'GET',
-            crossDomain: true,
-        });
-
-        if (!response.ok) {
-            throw new Error('Network resposne was not OK')
-        };
-
-        const json_data = await response.json()
-        return json_data;
     };
 
     function handleClick(type) {
@@ -200,7 +85,7 @@ export default function FlightPath() {
     useEffect(() => {
         if ((whereFrom.match) && (whereTo.match)) {
             console.log('data')
-            getRoutes(whereFrom.match.IATA, whereTo.match.IATA);
+            getRoutes(whereFrom.match.IATA, whereTo.match.IATA, setRoutes);
         } else {
             console.log('no data')
             setRoutes([]);

@@ -1,20 +1,17 @@
+import { useState } from 'react';
+
+// custom components and exported functions
 import Layout from '../components/Layout';
-
-import MapCanvas from '../components/map-container/Map';
-import Layers from '../components/map-container/layers/Layers';
-import Tile from '../components/map-container/layers/TileLayer';
-import Vector from '../components/map-container/layers/VectorLayer';
-
-import addMarker from '../components/map-container/features/Marker';
-import addLine from '../components/map-container/features/Line';
-
-import Interactions from '../components/map-container/interactions/Interactions';
-import ClickPixel from '../components/map-container/interactions/ClickPixel';
-
 import ShadowBox from '../components/containers/ShadowBox';
 
+// custom openLayers components
+import MapCanvas from '../components/map-container/Map';
+import { Layers, Tile, Vector } from '../components/map-container/layers'
+import { addMarker } from '../components/map-container/features'
+import {Interactions, ClickPixel}  from '../components/map-container/interactions';
+
+// openLayers components
 import OSM from 'ol/source/OSM';
-import { useState } from 'react';
 import { fromLonLat } from 'ol/proj';
 
 
