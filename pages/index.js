@@ -8,7 +8,8 @@ import ShadowBox from '../components/containers/ShadowBox';
 import MapCanvas from '../components/map-container/Map';
 import { Layers, Tile, Vector } from '../components/map-container/layers'
 import { addMarker } from '../components/map-container/features'
-import {Interactions, ClickPixel}  from '../components/map-container/interactions';
+import { Interactions, ClickPixel } from '../components/map-container/interactions';
+import { interpolate, randomCoord } from '../modules/MathFunctions';
 
 // openLayers components
 import OSM from 'ol/source/OSM';
@@ -138,21 +139,8 @@ export default function Home() {
       </ShadowBox>
     </>
   )
-}
-
-
-function randomCoord(center = [0, 0]) {
-  // returns a random coord near a provided center
-  const scaling = 0.001;
-  const x = center[0] * (1 + Math.random() * randomSign() * scaling);
-  const y = center[1] * (1 + Math.random() * randomSign() * scaling);
-  return [x, y]
 };
 
-function randomSign() {
-  // returns a random sign (polarity)
-  return Math.random() < 0.5 ? -1 : 1
-};
 
 // this is an async to handle position of a feature
 async function animateFeature(feature, line, pointA, pointB, duration, dataGenerator = interpolate) {
@@ -171,29 +159,6 @@ async function animateFeature(feature, line, pointA, pointB, duration, dataGener
     }
     // sleep the loop (await is non-blocking due to async)
     await sleep(dt)  // ms
-  }
-};
-
-// this is a generator
-function* interpolate(a, b, steps) {
-  // returns the interpolated step between a and b with a stepsize of dx
-
-  const [x0, y0] = [a[0], a[1]]  // a = [x1, y1]
-  const [x1, y1] = [b[0], b[1]]  // b = [x2, y2]
-
-  let idx = 0;
-  const dx = (x1 - x0) / steps
-  let step = 0.0;
-
-  while (idx < (steps + 1)) {
-    // computes next step in linear interpolation
-    step = x0 + (dx * idx)
-    // compute the corresponding y component
-    const y3 = (y0 * (x1 - step) + y1 * (step - x0)) / (x1 - x0)
-    // increment the index count for the loop
-    idx++;
-    // yields interpolated point [x, y]
-    yield [step, y3]
   }
 };
 

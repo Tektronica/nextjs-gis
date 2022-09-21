@@ -3,4 +3,4 @@
 import addMarker from "./Marker";
 import addLine from "./Line";
 
-export { addMarker, addLine }
+export { addMarker, addLine };
