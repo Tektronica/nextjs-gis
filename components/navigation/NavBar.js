@@ -8,30 +8,14 @@ const Navbar = () => {
                 <div className='text-white text-2xl'>
                     <Link href='/'>
                         <a className="flex items-center h-[65px]">
-                            <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </span>
-                            rcaWatch
+                            FlightPlanner
                         </a>
                     </Link>
                 </div>
             </div>
 
             <div className="flex-grow p-4">
-                <div className="pb-4 text-gray-400 hover:text-white">
-                    <Link href='/'>
-                        <a className="flex items-center">
-                            <span className="mr-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
-                                </svg>
-                            </span>
-                            Small Examples
-                        </a>
-                    </Link>
-                </div>
+
                 <div className="pb-4 text-gray-400 hover:text-white">
                     <Link href='/flightpath'>
                         <a className="flex items-center">
@@ -46,6 +30,20 @@ const Navbar = () => {
                         </a>
                     </Link>
                 </div>
+
+                <div className="pb-4 text-gray-400 hover:text-white">
+                    <Link href='/'>
+                        <a className="flex items-center">
+                            <span className="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
+                                </svg>
+                            </span>
+                            Small Examples
+                        </a>
+                    </Link>
+                </div>
+
                 <div className="pb-4 text-gray-400 hover:text-white">
                     <Link href='/history'>
                         <a className="flex items-center">
@@ -60,6 +58,7 @@ const Navbar = () => {
                         </a>
                     </Link>
                 </div>
+
             </div>
         </div>
     )
