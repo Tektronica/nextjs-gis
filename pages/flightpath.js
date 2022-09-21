@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import Layout from '../components/Layout';
 
 import ShadowBox from '../components/containers/ShadowBox';
@@ -120,12 +122,12 @@ export default function FlightPath() {
         const json_data = await response.json()
         const airlines = await getAirlines(json_data)
 
-        const tableData = json_data.map((route, idx) =>(
+        const tableData = json_data.map((route, idx) => (
             {
-                airline:airlines[idx],
-                aircraft:route['Destination airport'],
-                departure:route['Source airport'],
-                arrival:route['Destination airport']
+                airline: airlines[idx],
+                aircraft: '787',
+                departure: route['Source airport'],
+                arrival: route['Destination airport']
             }
         ));
 
@@ -194,6 +196,18 @@ export default function FlightPath() {
         }
     };
 
+    // update table after both airports are selected
+    useEffect(() => {
+        if ((whereTo.match) && (whereTo.match)) {
+            console.log('data')
+            getRoutes(whereFrom.match.IATA, whereTo.match.IATA);
+        } else {
+            console.log('no data')
+            setRoutes([]);
+        };
+
+    }, [whereFrom, whereTo]);
+
     return (
         <>
             <ShadowBox>
@@ -205,7 +219,7 @@ export default function FlightPath() {
                             suggestions={whereFrom.suggestions}
                             placeholder={'Where From?'}
                             onChange={(arg) => getAirports(arg, setWhereFrom)}
-                            onInput={(arg) => setWhereFrom(current => ({ ...current, label: arg }))}
+                            onInput={(arg) => setWhereFrom(current => ({ ...current, label: arg, match: null }))}
                             onClick={(arg) => setSelection(arg, setWhereFrom)}
                         />
 
@@ -214,7 +228,7 @@ export default function FlightPath() {
                             suggestions={whereTo.suggestions}
                             placeholder={'Where From?'}
                             onChange={(arg) => getAirports(arg, setWhereTo)}
-                            onInput={(arg) => setWhereTo(current => ({ ...current, label: arg }))}
+                            onInput={(arg) => setWhereTo(current => ({ ...current, label: arg, match: null }))}
                             onClick={(arg) => setSelection(arg, setWhereTo)}
                         />
                     </div>
@@ -257,12 +271,6 @@ export default function FlightPath() {
                         onClick={() => handleClick('flight')}
                     >
                         Fly!
-                    </button>
-                    <button
-                        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-                        onClick={() => getRoutes(whereFrom.match.IATA, whereTo.match.IATA)}
-                    >
-                        Get Routes
                     </button>
                 </div>
             </ShadowBox>
